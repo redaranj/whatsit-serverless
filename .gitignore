@@ -1,0 +1,14 @@
+# serverless
+.serverless
+env.yml
+
+# golang
+bin
+vendor
+
+# emacs
+client.rest
+.projectile
+
+# node
+node_modules

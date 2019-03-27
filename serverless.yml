@@ -1,0 +1,83 @@
+---
+service: whatsit-serverless
+
+package:
+  exclude:
+    - ./**
+  include:
+    - ./bin/**
+
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or falls back to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  environment: ${file(env.yml):${self:custom.stage}, file(env.yml):default}
+
+provider:
+  name: aws
+  runtime: go1.x
+  stage: development
+  region: us-east-1
+
+  environment:
+    SESSION_SECRETS_MANAGER_PREFIX: ${self:custom.sessionSecretsManagerPrefix}
+    API_KEY_SECRETS_MANAGER_KEY: ${self:custom.apiKeySecretsManagerKey}
+    SENDER_EMAIL_ADDRESS: ${self:custom.senderEmailAddress}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetRandomPassword
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+        - secretsmanager:CreateSecret
+        - secretsmanager:UpdateSecret
+        - secretsmanager:DeleteSecret
+      Resource: 'arn:aws:secretsmanager:${self:provider.region}:#{AWS::AccountId}:secret/${self:custom.sessionSecretsManagerPrefix}*'
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource: 'arn:aws:secretsmanager:${self:provider.region}:#{AWS::AccountId}:secret/${self:custom.apiKeySecretsManagerKey}'
+    - Effect: Allow
+      Action:
+        - kms:GenerateDataKey
+        - kms:Decrypt
+      Resource:
+        - ${self:custom.environment.kmsKeyArn}
+    - Effect: Allow
+      Action:
+        - ses:SendRawEmail
+      Resource:
+       - "*"
+
+functions:
+  register:
+    handler: bin/register
+    timeout: 30
+    events:
+      - http:
+          path: register
+          method: POST
+          cors: true
+
+  delete:
+    handler: bin/delete
+    timeout: 15
+    events:
+      - http:
+          path: delete
+          method: POST
+          cors: true
+
+  alert:
+    handler: bin/alert
+    timeout: 15
+    events:
+      - http:
+          path: alert
+          method: POST
+          cors: true
+
+plugins:
+  - serverless-pseudo-parameters
