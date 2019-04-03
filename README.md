@@ -17,17 +17,15 @@ Supported use cases:
 * node 8.10
 * [serverless](https://github.com/serverless/serverless)
 
-```
-
 ## Configure
 
-The service expects to find this parameter in the AWS SecretsManager as `SecureString`s
+The service expects to find this parameter in AWS SecretsManager as a `SecureString`
 
 * `/whatsit-serverless/<STAGE>/api-key`
 
 Where `<STAGE>` is the `development`/`production` stage you specify.
 
-You can use the AWS cli to add them, or terraform, as you like.
+You can use the AWS console or CLI to add them.
 
 As part of the serverless deployment, the functions will be given an IAM policy
 that allows them read access to these params.
@@ -247,7 +245,13 @@ See [alertmanager's <webhook_config>](https://prometheus.io/docs/alerting/config
 
 **Example Request:**
 
-
+```json
+{
+    "sender": "910a625c4ba147b544e6bd2f267e130ae14c591b6ba9c25cb8573322dedbebd0",
+    "number": "16666666666",
+    "message": "Testing testing 123"
+}
+```
 
 **Response Code:**
 
