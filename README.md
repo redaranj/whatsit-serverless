@@ -75,7 +75,7 @@ curl -s  -XPOST -d '{"number": "15555555555" }' https://<LAMBDA_ENDPOINT>/verify
 ### 3. Send test alert
 
 ```bash
-curl -s  -XPOST -d '{"sender": <YOUR_NUMBER_ID>, "number": "15555555555", "message": "Hi" }' https://<LAMBDA_ENDPOINT>/alert?secret=<SECRET>
+curl -s  -XPOST -d '{"sender": <YOUR_NUMBER_ID>, "number": "16666666666", "message": "Hi" }' https://<LAMBDA_ENDPOINT>/alert?secret=<SECRET>
 ```
 
 ### 4. Configure alertmanager
@@ -94,7 +94,7 @@ receivers:
 To delete a number, and its stored state (session keys, etc):
 
 ```bash
-curl -s  -XPOST -d '{"sender": <YOUR_NUMBER_ID>}' https://<LAMBDA_ENDPOINT>/delete?secret=<SECRET>
+curl -s  -XPOST -d '{"number": "15555555555"}' https://<LAMBDA_ENDPOINT>/delete?secret=<SECRET>
 ```
 
 ## HTTP API Reference
