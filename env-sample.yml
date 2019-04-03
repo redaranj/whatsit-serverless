@@ -1,0 +1,14 @@
+---
+production:
+  kmsKeyArn: arn:aws:kms:YOUR_KMS_KEY_ARN
+  sessionSecretsManagerPrefix: whatsit-serverless/production/whatsapp-session/
+  secretSecretsManagerPrefix: whatsit-serverless/production/shared-secret/
+  apiKeySecretsManagerKey: whatsit-serverless/production/api-key
+  senderEmailAddress: SES_ENABLED_EMAIL_ADDRESS
+
+default: # used for dev
+  kmsKeyArn: arn:aws:kms:YOUR_KMS_KEY_ARN
+  sessionSecretsManagerPrefix: whatsit-serverless/development/whatsapp-session/
+  secretSecretsManagerPrefix: whatsit-serverless/development/shared-secret/
+  apiKeySecretsManagerKey: whatsit-serverless/development/api-key
+  senderEmailAddress: SES_ENABLED_EMAIL_ADDRESS
