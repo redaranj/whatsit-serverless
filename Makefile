@@ -1,7 +1,8 @@
 build:
-	env GOOS=linux go build -ldflags="-s -w" -o bin/alert alert/main.go
-	env GOOS=linux go build -ldflags="-s -w" -o bin/delete delete/main.go
 	env GOOS=linux go build -ldflags="-s -w" -o bin/register register/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/verify verify/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/delete delete/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/alert alert/main.go
 .PHONY: clean
 clean:
 	rm -rf ./bin

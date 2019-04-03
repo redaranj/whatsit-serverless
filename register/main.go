@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -11,41 +12,51 @@ import (
 )
 
 type registerResponse struct {
-	Message  string `json:"message"`
+	Result   string `json:"result"`
 	NumberId string `json:"numberId"`
 	Secret   string `json:"secret"`
 }
 
 func handler(ctx context.Context, event map[string]interface{}) (events.APIGatewayProxyResponse, error) {
-	var err error
-	err = common.CheckSecret(event)
-	if err != nil {
+	if err := common.CheckApiKey(event); err != nil {
 		return common.RespondUnauthorized(err)
 	}
-
+	log.Println("HERE 1")
 	postParams, err := common.ParseJSONBody(event)
 	if err != nil {
-		return common.RespondError(err)
+		return common.RespondServerError(err)
 	}
-
+	log.Println("HERE 2")
 	number, numberOk := postParams["number"].(string)
+	if !numberOk {
+		err = errors.New("'number' parameter is required")
+		return common.RespondBadRequest(err)
+	}
+	log.Println("HERE 3")
 	email, emailOk := postParams["email"].(string)
-	if !numberOk || !emailOk {
-		err = errors.New("missing required parameter")
-		return common.RespondError(err)
+	if !emailOk {
+		err = errors.New("'email' parameter is required")
+		return common.RespondBadRequest(err)
 	}
-
-	err = common.SignIn(number, email)
+	log.Println("HERE 4")
+	if err = common.SignIn(number, email); err != nil {
+		common.RespondServerError(err)
+	}
+	log.Println("HERE 5")
+	secret, err := common.CreateRandomSecret()
 	if err != nil {
-		common.RespondError(err)
+		common.RespondServerError(err)
 	}
-
+	log.Println("HERE 6")
 	numberId := common.Hash(number)
-	prefix := os.Getenv("SESSION_SECRETS_MANAGER_PREFIX")
-	secret, err := common.CreateRandomSecret(prefix + numberId)
-
+	prefix := os.Getenv("SECRET_SECRETS_MANAGER_PREFIX")
+	err = common.UpdateSecretString(prefix+numberId, secret)
+	if err != nil {
+		common.RespondServerError(err)
+	}
+	log.Println("HERE 7")
 	res := &registerResponse{
-		Message:  "successfully registered " + number,
+		Result:   "registration complete",
 		NumberId: numberId,
 		Secret:   secret,
 	}

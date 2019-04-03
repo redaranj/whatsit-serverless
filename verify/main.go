@@ -11,32 +11,30 @@ import (
 )
 
 type verifyResponse struct {
-	Message  string `json:"message"`
+	Result   string `json:"result"`
 	NumberId string `json:"numberId"`
 }
 
 func handler(ctx context.Context, event map[string]interface{}) (events.APIGatewayProxyResponse, error) {
-	var err error
-	err = common.CheckSecret(event)
-	if err != nil {
+	if err := common.CheckSecret(event); err != nil {
 		return common.RespondUnauthorized(err)
 	}
 
 	queryParams, paramsOk := event["queryStringParameters"].(map[string]interface{})
 	number, numberOk := queryParams["number"].(string)
 	if !paramsOk || !numberOk {
-		err = errors.New("number parameter missing")
-		return common.RespondError(err)
+		err := errors.New("number parameter missing")
+		return common.RespondBadRequest(err)
 	}
 
+	numberId := common.Hash(number)
 	prefix := os.Getenv("SESSION_SECRETS_MANAGER_PREFIX")
-	_, err = common.GetSecret(prefix + sender)
-	if err != nil {
-		return common.RespondError(err)
+	if _, err := common.GetSecret(prefix + numberId); err != nil {
+		return common.RespondServerError(err)
 	}
 
 	res := &verifyResponse{
-		Message:  "number is registered",
+		Result:   "the number '" + number + "' was previously registered and can send messages",
 		NumberId: numberId,
 	}
 

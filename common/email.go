@@ -29,8 +29,7 @@ func buildEmailInput(recipient string, png []byte) (*ses.SendRawEmailInput, erro
 	header.Set("Content-Type", "multipart/mixed; boundary=\""+writer.Boundary()+"\"")
 	header.Set("MIME-Version", "1.0")
 
-	_, err := writer.CreatePart(header)
-	if err != nil {
+	if _, err := writer.CreatePart(header); err != nil {
 		return nil, err
 	}
 
@@ -43,8 +42,7 @@ func buildEmailInput(recipient string, png []byte) (*ses.SendRawEmailInput, erro
 		return nil, err
 	}
 
-	_, err = part.Write([]byte(message))
-	if err != nil {
+	if _, err = part.Write([]byte(message)); err != nil {
 		return nil, err
 	}
 
@@ -60,13 +58,12 @@ func buildEmailInput(recipient string, png []byte) (*ses.SendRawEmailInput, erro
 	}
 
 	encodedPng := base64.StdEncoding.EncodeToString(png)
-	_, err = part.Write([]byte(encodedPng))
-	if err != nil {
+
+	if _, err = part.Write([]byte(encodedPng)); err != nil {
 		return nil, err
 	}
 
-	err = writer.Close()
-	if err != nil {
+	if err = writer.Close(); err != nil {
 		return nil, err
 	}
 
@@ -91,15 +88,12 @@ func buildEmailInput(recipient string, png []byte) (*ses.SendRawEmailInput, erro
 func SendEmail(email string, png []byte) error {
 	svc := ses.New(session.New())
 
-	var err error
-	var emailInput *ses.SendRawEmailInput
-	emailInput, err = buildEmailInput(email, png)
+	emailInput, err := buildEmailInput(email, png)
 	if err != nil {
 		return err
 	}
 
-	_, err = svc.SendRawEmail(emailInput)
-	if err != nil {
+	if _, err := svc.SendRawEmail(emailInput); err != nil {
 		return err
 	}
 

@@ -11,31 +11,29 @@ import (
 )
 
 type deleteResponse struct {
-	Message string `json:"message"`
+	Result string `json:"result"`
 }
 
 func handler(ctx context.Context, event map[string]interface{}) (events.APIGatewayProxyResponse, error) {
-	var err error
-	err = common.CheckSecret(event)
-	if err != nil {
+	if err := common.CheckSecret(event); err != nil {
 		return common.RespondUnauthorized(err)
 	}
 
 	queryParams, paramsOk := event["queryStringParameters"].(map[string]interface{})
-	sender, senderOk := queryParams["sender"].(string)
-	if !paramsOk || !senderOk {
-		err = errors.New("sender parameter missing")
-		return common.RespondError(err)
+	number, numberOk := queryParams["number"].(string)
+	if !paramsOk || !numberOk {
+		err := errors.New("'number' parameter is required")
+		return common.RespondBadRequest(err)
 	}
 
 	prefix := os.Getenv("SESSION_SECRETS_MANAGER_PREFIX")
-	err = common.DeleteSecret(prefix + sender)
-	if err != nil {
-		return common.RespondError(err)
+	sender := common.Hash(number)
+	if err := common.DeleteSecret(prefix + sender); err != nil {
+		return common.RespondServerError(err)
 	}
 
 	res := &deleteResponse{
-		Message: "number deleted",
+		Result: "the number '" + number + "' is deleted",
 	}
 
 	return common.RespondSuccess(res)

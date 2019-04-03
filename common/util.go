@@ -18,14 +18,13 @@ func Hash(number string) string {
 
 func ParseJSONBody(event map[string]interface{}) (map[string]interface{}, error) {
 	var postParams map[string]interface{}
-	var err error
+
 	body, bodyOk := event["body"].(string)
 	if !bodyOk {
 		return postParams, errors.New("invalid POST body")
 	}
 
-	err = json.Unmarshal([]byte(body), &postParams)
-	if err != nil {
+	if err := json.Unmarshal([]byte(body), &postParams); err != nil {
 		return postParams, err
 	}
 

@@ -25,8 +25,7 @@ func SignIn(number string, email string) error {
 			log.Println(err)
 		}
 
-		err = SendEmail(email, png)
-		if err != nil {
+		if err = SendEmail(email, png); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -36,8 +35,8 @@ func SignIn(number string, email string) error {
 		return err
 	}
 
-	err = writeSession(number, session)
-	if err != nil {
+	sender := Hash(number)
+	if err = writeSession(sender, session); err != nil {
 		return err
 	}
 
@@ -48,17 +47,16 @@ func sessionTempPath(sender string) string {
 	return os.TempDir() + "/" + sender + ".gob"
 }
 
-func writeSession(number string, session wa.Session) error {
-	sender := Hash(number)
+func writeSession(sender string, session wa.Session) error {
 	path := sessionTempPath(sender)
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
+
 	encoder := gob.NewEncoder(file)
-	err = encoder.Encode(session)
-	if err != nil {
+	if err = encoder.Encode(session); err != nil {
 		return err
 	}
 
@@ -69,13 +67,12 @@ func writeSession(number string, session wa.Session) error {
 
 	prefix := os.Getenv("SESSION_SECRETS_MANAGER_PREFIX")
 	key := prefix + sender
-	err = UpdateSecret(key, data)
+	err = UpdateSecretBinary(key, data)
 
 	return err
 }
 
-func readSession() (wa.Session, error) {
-	sender := Hash("16464229653")
+func readSession(sender string) (wa.Session, error) {
 	prefix := os.Getenv("SESSION_SECRETS_MANAGER_PREFIX")
 	key := prefix + sender
 	var session wa.Session
@@ -85,8 +82,7 @@ func readSession() (wa.Session, error) {
 	}
 
 	path := sessionTempPath(sender)
-	err = ioutil.WriteFile(path, result.SecretBinary, 0644)
-	if err != nil {
+	if err = ioutil.WriteFile(path, result.SecretBinary, 0644); err != nil {
 		return session, err
 	}
 
@@ -97,22 +93,20 @@ func readSession() (wa.Session, error) {
 	defer file.Close()
 	decoder := gob.NewDecoder(file)
 
-	err = decoder.Decode(&session)
-	if err != nil {
+	if err = decoder.Decode(&session); err != nil {
 		return session, err
 	}
 
 	return session, nil
 }
 
-func SendMessage(recipient string, message string) error {
+func SendMessage(sender string, recipient string, message string) error {
 	con, err := wa.NewConn(10 * time.Second)
 	if err != nil {
 		return err
 	}
 
-	session, err := readSession()
-
+	session, err := readSession(sender)
 	if err != nil {
 		return err
 	}
@@ -122,8 +116,7 @@ func SendMessage(recipient string, message string) error {
 		return err
 	}
 
-	err = writeSession("16464229653", session)
-	if err != nil {
+	if err = writeSession(sender, session); err != nil {
 		return err
 	}
 
@@ -141,7 +134,7 @@ func SendMessage(recipient string, message string) error {
 		return err
 	}
 
-	err = writeSession("16464229653", session)
+	err = writeSession(sender, session)
 	if err != nil {
 		return err
 	}

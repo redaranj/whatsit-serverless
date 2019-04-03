@@ -105,7 +105,7 @@ curl -s  -XPOST -d '{"sender": <YOUR_NUMBER_ID>}' https://<LAMBDA_ENDPOINT>/dele
 
 Authentication is handled via either an API key (for registration) or a per-WhatsApp-number shared secret.
 
-The `register` endpoint requires a query parameter `api_key` that must equal the value configured for the `WHATSIT_API_KEY` variable.
+The `register` endpoint requires a query parameter `api_key` that must equal the value stored in AWS Secrets Manager with the value of `apiKeySecretsManagerKey` (configured in env.yaml)
 
 * If the API key is missing or blank on the server, the server will return a `401`.
 * If the API key is missing from the client's request, the server will return a `401`.
@@ -117,7 +117,7 @@ All other endpoints require a query parameter `secret` which will be returned by
 
 ### Number IDs
 
-In all lifecycle endpoints (register, verify, delete), the Signal account
+In all lifecycle endpoints (register, verify, delete), the Whatsapp account
 number (used to send messages) is passed as the fully qualified number (e.g.,
 `15555555555`).
 
@@ -128,7 +128,7 @@ returned as part of the response from `/verify` and `/register`, so if you note
 that down, there is no need to calculate it yourself.
 
 This is done in order to prevent third-party services (alertmanager, datadog,
-etc) from knowing what your Signal number is.
+etc) from knowing what your Whatsapp number is.
 
 ### POST /register
 
@@ -203,7 +203,7 @@ etc) from knowing what your Signal number is.
 
 ### POST /delete
 
-To delete a number from the backend (but not from signal's servers).
+To delete a number from the backend.
 
 **JSON Payload:**
 
@@ -231,13 +231,13 @@ To delete a number from the backend (but not from signal's servers).
 
 ```json
 {
-    "result":"the number '15555555555' is deleted"
+    "result": "the number '15555555555' is deleted"
 }
 ```
 
 ### POST /alert
 
-An endpoint that receives [alertmanager]() formatted json payloads containing alerts. The Signal recipients are decided based on the
+An endpoint that receives [alertmanager]() formatted json payloads containing alerts. The Whatsapp recipients are decided based on the
 `receiver` attribute of the payload. See
 
 **JSON Payload:**

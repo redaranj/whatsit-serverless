@@ -20,25 +20,29 @@ provider:
   region: us-east-1
 
   environment:
-    SESSION_SECRETS_MANAGER_PREFIX: ${self:custom.sessionSecretsManagerPrefix}
-    API_KEY_SECRETS_MANAGER_KEY: ${self:custom.apiKeySecretsManagerKey}
-    SENDER_EMAIL_ADDRESS: ${self:custom.senderEmailAddress}
+    SESSION_SECRETS_MANAGER_PREFIX: ${self:custom.environment.sessionSecretsManagerPrefix}
+    SECRET_SECRETS_MANAGER_PREFIX: ${self:custom.environment.secretSecretsManagerPrefix}
+    API_KEY_SECRETS_MANAGER_KEY: ${self:custom.environment.apiKeySecretsManagerKey}
+    SENDER_EMAIL_ADDRESS: ${self:custom.environment.senderEmailAddress}
 
   iamRoleStatements:
     - Effect: Allow
       Action:
         - secretsmanager:GetRandomPassword
+      Resource: '*'
     - Effect: Allow
       Action:
         - secretsmanager:GetSecretValue
         - secretsmanager:CreateSecret
         - secretsmanager:UpdateSecret
         - secretsmanager:DeleteSecret
-      Resource: 'arn:aws:secretsmanager:${self:provider.region}:#{AWS::AccountId}:secret/${self:custom.sessionSecretsManagerPrefix}*'
+      Resource:
+        - 'arn:aws:secretsmanager:${self:provider.region}:#{AWS::AccountId}:secret:${self:custom.environment.sessionSecretsManagerPrefix}*'
+        - 'arn:aws:secretsmanager:${self:provider.region}:#{AWS::AccountId}:secret:${self:custom.environment.secretSecretsManagerPrefix}*'
     - Effect: Allow
       Action:
         - secretsmanager:GetSecretValue
-      Resource: 'arn:aws:secretsmanager:${self:provider.region}:#{AWS::AccountId}:secret/${self:custom.apiKeySecretsManagerKey}'
+      Resource: 'arn:aws:secretsmanager:${self:provider.region}:#{AWS::AccountId}:secret:${self:custom.environment.apiKeySecretsManagerKey}*'
     - Effect: Allow
       Action:
         - kms:GenerateDataKey
@@ -58,6 +62,15 @@ functions:
     events:
       - http:
           path: register
+          method: POST
+          cors: true
+
+  verify:
+    handler: bin/verify
+    timeout: 15
+    events:
+      - http:
+          path: verify
           method: POST
           cors: true
 
