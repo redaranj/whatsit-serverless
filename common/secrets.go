@@ -2,7 +2,6 @@ package common
 
 import (
 	"errors"
-	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -25,9 +24,6 @@ func CheckApiKey(event map[string]interface{}) error {
 		return err
 	}
 
-	log.Println("API KEY IS " + *secretOutput.SecretString)
-	log.Println("INPUT API KEY IS " + apiKey)
-
 	if *secretOutput.SecretString != apiKey {
 		return errors.New("incorrect api key")
 	}
@@ -43,25 +39,27 @@ func CheckSecret(event map[string]interface{}) error {
 		return errors.New("secret parameter missing")
 	}
 
-	number, numberOk := queryParams["number"].(string)
-	sender, senderOk := queryParams["sender"].(string)
-
-	if !numberOk && !senderOk {
-		return errors.New("'number' or 'sender' parameter is required")
-	}
-
-	if numberOk {
-		sender = Hash(number)
-	}
-
-	prefix := os.Getenv("SESSION_SECRETS_MANAGER_PREFIX")
-	secretOutput, err := GetSecret(prefix + sender)
+	postParams, err := ParseJSONBody(event)
 	if err != nil {
 		return err
 	}
 
-	log.Println("SECRET IS " + *secretOutput.SecretString)
-	log.Println("INPUT SECRET IS " + secret)
+	var sender string
+	sender, senderOk := postParams["sender"].(string)
+	if !senderOk || sender == "" {
+		number, numberOk := postParams["number"].(string)
+		if !numberOk || number == "" {
+			return errors.New("'number' or 'sender' parameter is required")
+		} else {
+			sender = Hash(number)
+		}
+	}
+
+	prefix := os.Getenv("SECRET_SECRETS_MANAGER_PREFIX")
+	secretOutput, err := GetSecret(prefix + sender)
+	if err != nil {
+		return err
+	}
 
 	if *secretOutput.SecretString != secret {
 		return errors.New("incorrect secret")
@@ -71,15 +69,12 @@ func CheckSecret(event map[string]interface{}) error {
 }
 
 func GetSecret(key string) (*secretsmanager.GetSecretValueOutput, error) {
-	var secret *secretsmanager.GetSecretValueOutput
-	var err error
-
 	svc := secretsmanager.New(session.New())
 	getInput := &secretsmanager.GetSecretValueInput{
 		SecretId: aws.String(key),
 	}
 
-	secret, err = svc.GetSecretValue(getInput)
+	secret, err := svc.GetSecretValue(getInput)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			if aerr.Code() == secretsmanager.ErrCodeResourceNotFoundException {
@@ -94,15 +89,11 @@ func GetSecret(key string) (*secretsmanager.GetSecretValueOutput, error) {
 }
 
 func UpdateSecretString(key string, value string) error {
-	svc := secretsmanager.New(session.New())
-	getInput := &secretsmanager.GetSecretValueInput{
-		SecretId: aws.String(key),
-	}
-
-	secret, err := svc.GetSecretValue(getInput)
+	secret, err := GetSecret(key)
 	if err != nil {
 		return err
 	} else if secret == nil {
+		svc := secretsmanager.New(session.New())
 		createInput := &secretsmanager.CreateSecretInput{
 			Name:         aws.String(key),
 			SecretString: aws.String(value),
@@ -110,12 +101,13 @@ func UpdateSecretString(key string, value string) error {
 		_, err := svc.CreateSecret(createInput)
 		return err
 	} else {
+		svc := secretsmanager.New(session.New())
 		updateInput := &secretsmanager.UpdateSecretInput{
 			SecretId:     aws.String(key),
 			SecretString: aws.String(value),
 		}
-		_, updateErr := svc.UpdateSecret(updateInput)
-		if updateErr != nil {
+
+		if _, updateErr := svc.UpdateSecret(updateInput); updateErr != nil {
 			return updateErr
 		}
 
@@ -124,12 +116,10 @@ func UpdateSecretString(key string, value string) error {
 }
 
 func UpdateSecretBinary(key string, data []byte) error {
-	svc := secretsmanager.New(session.New())
-	getInput := &secretsmanager.GetSecretValueInput{
-		SecretId: aws.String(key),
-	}
+	secret, err := GetSecret(key)
 
-	secret, err := svc.GetSecretValue(getInput)
+	svc := secretsmanager.New(session.New())
+
 	if err != nil {
 		return err
 	} else if secret == nil {

@@ -19,15 +19,25 @@ func handler(ctx context.Context, event map[string]interface{}) (events.APIGatew
 		return common.RespondUnauthorized(err)
 	}
 
-	queryParams, paramsOk := event["queryStringParameters"].(map[string]interface{})
-	number, numberOk := queryParams["number"].(string)
-	if !paramsOk || !numberOk {
+	postParams, err := common.ParseJSONBody(event)
+	if err != nil {
+		return common.RespondBadRequest(err)
+	}
+
+	number, numberOk := postParams["number"].(string)
+	if !numberOk {
 		err := errors.New("'number' parameter is required")
 		return common.RespondBadRequest(err)
 	}
 
-	prefix := os.Getenv("SESSION_SECRETS_MANAGER_PREFIX")
 	sender := common.Hash(number)
+
+	prefix := os.Getenv("SESSION_SECRETS_MANAGER_PREFIX")
+	if err := common.DeleteSecret(prefix + sender); err != nil {
+		return common.RespondServerError(err)
+	}
+
+	prefix = os.Getenv("SECRET_SECRETS_MANAGER_PREFIX")
 	if err := common.DeleteSecret(prefix + sender); err != nil {
 		return common.RespondServerError(err)
 	}

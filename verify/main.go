@@ -20,9 +20,13 @@ func handler(ctx context.Context, event map[string]interface{}) (events.APIGatew
 		return common.RespondUnauthorized(err)
 	}
 
-	queryParams, paramsOk := event["queryStringParameters"].(map[string]interface{})
-	number, numberOk := queryParams["number"].(string)
-	if !paramsOk || !numberOk {
+	postParams, err := common.ParseJSONBody(event)
+	if err != nil {
+		return common.RespondBadRequest(err)
+	}
+
+	number, numberOk := postParams["number"].(string)
+	if !numberOk {
 		err := errors.New("number parameter missing")
 		return common.RespondBadRequest(err)
 	}

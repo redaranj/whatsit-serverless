@@ -9,6 +9,7 @@ vendor
 # emacs
 client.rest
 .projectile
+todo.org
 
 # node
 node_modules
