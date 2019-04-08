@@ -25,10 +25,11 @@ The service expects to find this parameter in AWS SecretsManager as a `SecureStr
 
 Where `<STAGE>` is the `development`/`production` stage you specify.
 
-You can use the AWS console or CLI to add them.
+You will also need to set up AWS Simple Email Service with a valid send address that corresponds to what is entered in env.yml for the `senderEmailAddress` value.
 
-As part of the serverless deployment, the functions will be given an IAM policy
-that allows them read access to these params.
+You can use the AWS console or CLI to set up the API key and the SES.
+
+As part of the serverless deployment, the functions will be given an IAM policy that allows them read access to these params.
 
 ## Deploy
 
@@ -103,7 +104,7 @@ curl -s  -XPOST -d '{"number": "15555555555"}' https://<LAMBDA_ENDPOINT>/delete?
 
 Authentication is handled via either an API key (for registration) or a per-WhatsApp-number shared secret.
 
-The `register` endpoint requires a query parameter `api_key` that must equal the value stored in AWS Secrets Manager with the value of `apiKeySecretsManagerKey` (configured in env.yaml)
+The `register` endpoint requires a query parameter `api_key` that must equal the value stored in AWS Secrets Manager with the value of `apiKeySecretsManagerKey` (configured in env.yml)
 
 * If the API key is missing or blank on the server, the server will return a `401`.
 * If the API key is missing from the client's request, the server will return a `401`.

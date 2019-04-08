@@ -2,5 +2,5 @@ package common
 
 import "testing"
 
-func TestFunc(t *testing.T) {
+func TestEmailFunc(t *testing.T) {
 }

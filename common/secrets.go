@@ -97,6 +97,7 @@ func UpdateSecretString(key string, value string) error {
 		createInput := &secretsmanager.CreateSecretInput{
 			Name:         aws.String(key),
 			SecretString: aws.String(value),
+			KmsKeyId:     aws.String(os.Getenv("KMS_KEY_ARN")),
 		}
 		_, err := svc.CreateSecret(createInput)
 		return err
@@ -126,6 +127,7 @@ func UpdateSecretBinary(key string, data []byte) error {
 		createInput := &secretsmanager.CreateSecretInput{
 			Name:         aws.String(key),
 			SecretBinary: data,
+			KmsKeyId:     aws.String(os.Getenv("KMS_KEY_ARN")),
 		}
 		_, err := svc.CreateSecret(createInput)
 		return err
@@ -165,7 +167,8 @@ func CreateRandomSecret() (string, error) {
 func DeleteSecret(key string) error {
 	svc := secretsmanager.New(session.New())
 	deleteInput := &secretsmanager.DeleteSecretInput{
-		SecretId: aws.String(key),
+		SecretId:                   aws.String(key),
+		ForceDeleteWithoutRecovery: aws.Bool(true),
 	}
 	_, err := svc.DeleteSecret(deleteInput)
 	if err != nil {

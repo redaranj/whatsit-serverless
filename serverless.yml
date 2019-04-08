@@ -24,6 +24,7 @@ provider:
     SECRET_SECRETS_MANAGER_PREFIX: ${self:custom.environment.secretSecretsManagerPrefix}
     API_KEY_SECRETS_MANAGER_KEY: ${self:custom.environment.apiKeySecretsManagerKey}
     SENDER_EMAIL_ADDRESS: ${self:custom.environment.senderEmailAddress}
+    KMS_KEY_ARN: ${self:custom.environment.kmsKeyArn}
 
   iamRoleStatements:
     - Effect: Allow

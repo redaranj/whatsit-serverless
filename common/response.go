@@ -13,6 +13,7 @@ type errorResponse struct {
 
 func RespondSuccess(res interface{}) (events.APIGatewayProxyResponse, error) {
 	body, err := json.Marshal(res)
+
 	if err != nil {
 		return RespondServerError(err)
 	}
@@ -59,7 +60,7 @@ func respondError(err error, code int) (events.APIGatewayProxyResponse, error) {
 	return events.APIGatewayProxyResponse{
 		Body:       string(body),
 		StatusCode: code,
-	}, err
+	}, nil
 }
 
 func respondGenericError() (events.APIGatewayProxyResponse, error) {
