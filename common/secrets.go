@@ -108,8 +108,8 @@ func UpdateSecretString(key string, value string) error {
 			SecretString: aws.String(value),
 		}
 
-		if _, updateErr := svc.UpdateSecret(updateInput); updateErr != nil {
-			return updateErr
+		if _, err := svc.UpdateSecret(updateInput); err != nil {
+			return err
 		}
 
 		return nil
@@ -136,9 +136,9 @@ func UpdateSecretBinary(key string, data []byte) error {
 			SecretId:     aws.String(key),
 			SecretBinary: data,
 		}
-		_, updateErr := svc.UpdateSecret(updateInput)
-		if updateErr != nil {
-			return updateErr
+
+		if _, err := svc.UpdateSecret(updateInput); err != nil {
+			return err
 		}
 
 		return nil
@@ -158,7 +158,6 @@ func CreateRandomSecret() (string, error) {
 	if err != nil {
 		return secret, err
 	}
-
 	secret = *generatedSecret.RandomPassword
 
 	return secret, nil
@@ -170,8 +169,7 @@ func DeleteSecret(key string) error {
 		SecretId:                   aws.String(key),
 		ForceDeleteWithoutRecovery: aws.Bool(true),
 	}
-	_, err := svc.DeleteSecret(deleteInput)
-	if err != nil {
+	if _, err := svc.DeleteSecret(deleteInput); err != nil {
 		return err
 	}
 

@@ -82,7 +82,7 @@ func readSession(sender string) (wa.Session, error) {
 	}
 
 	path := sessionTempPath(sender)
-	if err = ioutil.WriteFile(path, result.SecretBinary, 0644); err != nil {
+	if err := ioutil.WriteFile(path, result.SecretBinary, 0644); err != nil {
 		return session, err
 	}
 
@@ -93,7 +93,7 @@ func readSession(sender string) (wa.Session, error) {
 	defer file.Close()
 	decoder := gob.NewDecoder(file)
 
-	if err = decoder.Decode(&session); err != nil {
+	if err := decoder.Decode(&session); err != nil {
 		return session, err
 	}
 
@@ -116,7 +116,7 @@ func SendMessage(sender string, recipient string, message string) error {
 		return err
 	}
 
-	if err = writeSession(sender, session); err != nil {
+	if err := writeSession(sender, session); err != nil {
 		return err
 	}
 
@@ -129,15 +129,13 @@ func SendMessage(sender string, recipient string, message string) error {
 		Text: message,
 	}
 
-	err = con.Send(msg)
-	if err != nil {
+	if err := con.Send(msg); err != nil {
 		return err
 	}
 
-	err = writeSession(sender, session)
-	if err != nil {
+	if err := writeSession(sender, session); err != nil {
 		return err
 	}
 
-	return err
+	return nil
 }

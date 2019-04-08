@@ -42,7 +42,7 @@ func buildEmailInput(recipient string, png []byte) (*ses.SendRawEmailInput, erro
 		return nil, err
 	}
 
-	if _, err = part.Write([]byte(message)); err != nil {
+	if _, err := part.Write([]byte(message)); err != nil {
 		return nil, err
 	}
 
@@ -59,11 +59,11 @@ func buildEmailInput(recipient string, png []byte) (*ses.SendRawEmailInput, erro
 
 	encodedPng := base64.StdEncoding.EncodeToString(png)
 
-	if _, err = part.Write([]byte(encodedPng)); err != nil {
+	if _, err := part.Write([]byte(encodedPng)); err != nil {
 		return nil, err
 	}
 
-	if err = writer.Close(); err != nil {
+	if err := writer.Close(); err != nil {
 		return nil, err
 	}
 
